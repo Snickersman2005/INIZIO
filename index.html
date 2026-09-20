@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="cs" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <title>Vyhledávání</title>
+    <link href="/output.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #4338ca;
+            --accent-soft: #eef2ff;
+            --ink: #1e2129;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #fafafa;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--ink);
+            display: flex;
+            justify-content: center;
+            padding: 4rem 1.5rem;
+        }
+
+        .wrap {
+            width: 100%;
+            max-width: 640px;
+        }
+
+        .eyebrow {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin: 0 0 1.75rem 0;
+        }
+
+        .search-row {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.75rem;
+        }
+
+        #searchInput {
+            flex: 1;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            font-size: 0.95rem;
+            font-family: inherit;
+            color: var(--ink);
+            background: #fff;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        #searchInput::placeholder { color: #9ca3af; }
+
+        #searchInput:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px var(--accent-soft);
+        }
+
+        #searchForm button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            border: none;
+            border-radius: 10px;
+            padding: 0 1.25rem;
+            background: var(--accent);
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        #searchForm button:hover { background: #372ea6; }
+        #searchForm button svg { width: 16px; height: 16px; }
+
+        .action-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0.85rem;
+            margin-bottom: 0.85rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .action-row .count {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--muted);
+        }
+
+        #csvBtn {
+            border: 1.5px solid var(--border);
+            background: #fff;
+            border-radius: 8px;
+            padding: 0.4rem 0.85rem;
+            font-family: inherit;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--ink);
+            cursor: pointer;
+            transition: border-color 0.15s ease, background 0.15s ease;
+        }
+
+        #csvBtn:hover { border-color: var(--accent); background: var(--accent-soft); }
+
+        #results { font-size: 0.9rem; }
+
+        .empty-state {
+            padding: 2.5rem 0;
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .result-item {
+            padding: 0.9rem 0;
+            border-bottom: 1px solid #f1f2f4;
+        }
+
+        .result-item:last-child { border-bottom: none; }
+
+        .result-item a {
+            color: var(--accent);
+            font-weight: 600;
+            font-size: 0.92rem;
+            text-decoration: none;
+        }
+
+        .result-item a:hover { text-decoration: underline; }
+
+        .result-item .url {
+            margin-top: 0.2rem;
+            font-size: 0.78rem;
+            color: #9ca3af;
+            word-break: break-all;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid var(--accent-soft);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: -2px;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <div class="eyebrow">Rychlé hledání</div>
+        <h1>Vyhledávání</h1>
+
+        <form id="searchForm" class="search-row">
+            <input type="text" id="searchInput" placeholder="Zadejte dotaz…" autocomplete="off">
+            <button type="submit">
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="9" cy="9" r="6"/>
+                    <path d="M17 17l-4-4" stroke-linecap="round"/>
+                </svg>
+                Hledat
+            </button>
+        </form>
+
+        <div id="actionArea" class="action-row" style="display:none;">
+            <span class="count" id="resultCount">Výsledky</span>
+            <button id="csvBtn">Stáhnout CSV</button>
+        </div>
+
+        <div id="results">
+            <div class="empty-state">Žádný dotaz zatím nebyl odeslán.</div>
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('searchForm');
+        const input = document.getElementById('searchInput');
+        const resultsBox = document.getElementById('results');
+        const actionArea = document.getElementById('actionArea');
+        const resultCount = document.getElementById('resultCount');
+        const csvBtn = document.getElementById('csvBtn');
+
+        let lastResults = [];
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            runSearch(input.value.trim());
+        });
+
+        csvBtn.addEventListener('click', exportCsv);
+
+        async function runSearch(query) {
+            if (!query) return;
+
+            resultsBox.innerHTML = '<div class="empty-state"><span class="spinner"></span>Hledám…</div>';
+            actionArea.style.display = 'none';
+
+            let data;
+            try {
+                const res = await fetch('/search?q=' + encodeURIComponent(query));
+                data = await res.json();
+            } catch (err) {
+                resultsBox.innerHTML = '<div class="empty-state">Server neodpovídá.</div>';
+                return;
+            }
+
+            lastResults = data.results || [];
+            renderResults(lastResults);
+        }
+
+        function renderResults(items) {
+            if (items.length === 0) {
+                resultsBox.innerHTML = '<div class="empty-state">Nic nenalezeno.</div>';
+                return;
+            }
+
+            resultsBox.innerHTML = '';
+            for (const item of items) {
+                const row = document.createElement('div');
+                row.className = 'result-item';
+
+                const link = document.createElement('a');
+                link.href = item.link;
+                link.target = '_blank';
+                link.textContent = item.title;
+
+                const url = document.createElement('div');
+                url.className = 'url';
+                url.textContent = item.link;
+
+                row.appendChild(link);
+                row.appendChild(url);
+                resultsBox.appendChild(row);
+            }
+
+            resultCount.textContent = items.length + (items.length === 1 ? ' výsledek' : ' výsledků');
+            actionArea.style.display = 'flex';
+        }
+
+        function exportCsv() {
+            if (lastResults.length === 0) return;
+
+            const rows = lastResults.map(function (r) {
+                const title = r.title.split('"').join('""');
+                return '"' + title + '","' + r.link + '"';
+            });
+            const csv = 'Titulek,Odkaz\n' + rows.join('\n');
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'results.csv';
+            a.click();
+        }
+    </script>
+</body>
+</html>
