@@ -6,8 +6,8 @@ import logging
 logger = logging.getLogger("search")
 app = FastAPI()
 
-SERPER_API_KEY = "c243c5560c4b7b9e4c612ba8f61b39ee59497a8e"
-
+import os
+SERPER_API_KEY = os.environ.get("SERPER_API_KEY", "")
 
 @app.get("/")
 def read_root():
